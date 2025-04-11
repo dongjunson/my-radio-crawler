@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retry Failed Logs</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Retry Failed Logs</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Selected Log</h2>
+            <div class="space-y-2">
+                <p class="text-gray-600">
+                    <span class="font-medium">Date:</span> {{ log.date }}
+                </p>
+                <p class="text-gray-600">
+                    <span class="font-medium">SeqID:</span> {{ log.seq_id }}
+                </p>
+                <p class="text-gray-600">
+                    <span class="font-medium">Time:</span> {{ log.time }}
+                </p>
+                <p class="text-gray-600">
+                    <span class="font-medium">Songs:</span> {{ log.songs|length }}
+                </p>
+            </div>
+        </div>
+
+        <form method="POST" class="bg-white rounded-lg shadow-md p-6">
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="seq_id">
+                    New SeqID
+                </label>
+                <input type="number" id="seq_id" name="seq_id" value="{{ log.seq_id }}"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div class="flex items-center justify-between">
+                <button type="submit" 
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Retry with New SeqID
+                </button>
+                <a href="/" 
+                    class="text-gray-600 hover:text-gray-800">
+                    Back to List
+                </a>
+            </div>
+        </form>
+    </div>
+</body>
+</html> 

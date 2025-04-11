@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Failed Logs Viewer</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .log-card {
+            transition: all 0.3s ease;
+        }
+        .log-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Failed Logs Viewer</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for log in failed_logs %}
+            <div class="log-card bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-xl font-semibold text-gray-700">{{ log.date }}</h2>
+                    <span class="px-3 py-1 rounded-full text-sm font-medium 
+                        {% if log.status == 'success' %}bg-green-100 text-green-800
+                        {% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ log.status }}
+                    </span>
+                </div>
+                
+                <div class="space-y-2">
+                    <p class="text-gray-600">
+                        <span class="font-medium">SeqID:</span> {{ log.seq_id }}
+                    </p>
+                    <p class="text-gray-600">
+                        <span class="font-medium">Time:</span> {{ log.time }}
+                    </p>
+                    <p class="text-gray-600">
+                        <span class="font-medium">Songs:</span> {{ log.songs|length }}
+                    </p>
+                </div>
+
+                {% if log.error %}
+                <div class="mt-4 p-4 bg-red-50 rounded-md">
+                    <h3 class="font-medium text-red-800 mb-2">Error Details:</h3>
+                    <p class="text-red-600 text-sm">{{ log.error }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html> 

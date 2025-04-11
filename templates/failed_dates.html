@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Failed Dates</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .date-card {
+            transition: all 0.3s ease;
+        }
+        .date-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Failed Dates</h1>
+            <a href="/" class="text-blue-500 hover:text-blue-700 font-medium">
+                Back to Logs
+            </a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for date, data in failed_dates.items() %}
+            <div class="date-card bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-xl font-semibold text-gray-700">{{ date }}</h2>
+                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                        {{ data.count }} failures
+                    </span>
+                </div>
+                
+                {% if data.last_error %}
+                <div class="mt-4 p-4 bg-red-50 rounded-md">
+                    <h3 class="font-medium text-red-800 mb-2">Last Error:</h3>
+                    <p class="text-red-600 text-sm">{{ data.last_error }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html> 

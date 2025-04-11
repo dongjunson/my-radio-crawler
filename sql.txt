@@ -1,0 +1,117 @@
+select * from music_data where broadcast_date = '2023-12-25'
+
+select count(*) from music_data
+
+select * from last_successful_seq order by seqid desc
+
+select * from failed_dates
+
+SELECT 
+    artist,
+    COUNT(*) as play_count
+FROM music_data
+WHERE artist IS NOT NULL 
+  AND artist != ''
+  AND artist != 'Vienna Symphonic Orchestra Project'
+GROUP BY artist
+ORDER BY play_count DESC
+
+SELECT 
+    CASE 
+        WHEN play_count >= 1000 THEN '최상위 인기 (1000회 이상)'
+        WHEN play_count >= 500 THEN '상위 인기 (500-999회)'
+        WHEN play_count >= 100 THEN '중상위 인기 (100-499회)'
+        WHEN play_count >= 50 THEN '중위 인기 (50-99회)'
+        ELSE '일반 (50회 미만)'
+    END as popularity_tier,
+    COUNT(*) as artist_count,
+    STRING_AGG(artist || ' (' || play_count || '회)', ', ' ORDER BY play_count DESC) as artists
+FROM (
+    SELECT 
+        artist,
+        COUNT(*) as play_count
+    FROM music_data
+    WHERE artist IS NOT NULL 
+      AND artist != ''
+      AND artist != 'Vienna Symphonic Orchestra Project'
+    GROUP BY artist
+) subq
+GROUP BY 
+    CASE 
+        WHEN play_count >= 1000 THEN '최상위 인기 (1000회 이상)'
+        WHEN play_count >= 500 THEN '상위 인기 (500-999회)'
+        WHEN play_count >= 100 THEN '중상위 인기 (100-499회)'
+        WHEN play_count >= 50 THEN '중위 인기 (50-99회)'
+        ELSE '일반 (50회 미만)'
+    END
+ORDER BY 
+    CASE 
+        WHEN CASE 
+            WHEN play_count >= 1000 THEN '최상위 인기 (1000회 이상)'
+            WHEN play_count >= 500 THEN '상위 인기 (500-999회)'
+            WHEN play_count >= 100 THEN '중상위 인기 (100-499회)'
+            WHEN play_count >= 50 THEN '중위 인기 (50-99회)'
+            ELSE '일반 (50회 미만)'
+        END = '최상위 인기 (1000회 이상)' THEN 1
+        WHEN CASE 
+            WHEN play_count >= 1000 THEN '최상위 인기 (1000회 이상)'
+            WHEN play_count >= 500 THEN '상위 인기 (500-999회)'
+            WHEN play_count >= 100 THEN '중상위 인기 (100-499회)'
+            WHEN play_count >= 50 THEN '중위 인기 (50-99회)'
+            ELSE '일반 (50회 미만)'
+        END = '상위 인기 (500-999회)' THEN 2
+        WHEN CASE 
+            WHEN play_count >= 1000 THEN '최상위 인기 (1000회 이상)'
+            WHEN play_count >= 500 THEN '상위 인기 (500-999회)'
+            WHEN play_count >= 100 THEN '중상위 인기 (100-499회)'
+            WHEN play_count >= 50 THEN '중위 인기 (50-99회)'
+            ELSE '일반 (50회 미만)'
+        END = '중상위 인기 (100-499회)' THEN 3
+        WHEN CASE 
+            WHEN play_count >= 1000 THEN '최상위 인기 (1000회 이상)'
+            WHEN play_count >= 500 THEN '상위 인기 (500-999회)'
+            WHEN play_count >= 100 THEN '중상위 인기 (100-499회)'
+            WHEN play_count >= 50 THEN '중위 인기 (50-99회)'
+            ELSE '일반 (50회 미만)'
+        END = '중위 인기 (50-99회)' THEN 4
+        ELSE 5
+    END;
+
+-- 테이블 생성
+CREATE TABLE artist_grade (
+    artist VARCHAR(255) PRIMARY KEY,
+    play_count INTEGER NOT NULL,
+    grade VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 기존 데이터 삭제
+DELETE FROM artist_grade;
+
+-- 데이터 삽입
+INSERT INTO artist_grade (artist, play_count, grade)
+SELECT 
+    artist,
+    play_count,
+    CASE 
+        WHEN play_count >= 1000 THEN '★★★★★'
+        WHEN play_count >= 500 THEN '★★★★'
+        WHEN play_count >= 100 THEN '★★★'
+        WHEN play_count >= 50 THEN '★★'
+        ELSE '★'
+    END as grade
+FROM (
+    SELECT 
+        artist,
+        COUNT(*) as play_count
+    FROM music_data
+    WHERE artist IS NOT NULL 
+      AND artist != ''
+      AND artist != 'Vienna Symphonic Orchestra Project'
+    GROUP BY artist
+) subq
+ORDER BY play_count DESC;
+
+-- 결과 확인
+SELECT * FROM artist_grade ORDER BY play_count DESC;
+    
