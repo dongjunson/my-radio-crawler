@@ -52,5 +52,4 @@ def check_page_structure(seq_id):
         print(f"페이지를 가져오는데 실패했습니다. 상태 코드: {response.status_code}")
 
 # 두 ID의 페이지 구조 비교
-check_page_structure(3000)
-check_page_structure(6937) 
+check_page_structure(6941)

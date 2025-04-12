@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 import psycopg2
 from time import sleep
 from urllib.parse import quote_plus
-from insert_data import insert_music_data
 from datetime import datetime
 import re
+from utils import convert_korean_date_to_iso
 
 # 환경 변수 로드
 load_dotenv()
@@ -57,18 +57,6 @@ CREATE TABLE IF NOT EXISTS failed_dates (
 )
 ''')
 conn.commit()
-
-def convert_korean_date_to_iso(date_str):
-    # "2006년 09월 01일 선곡표" 또는 "2025년 1월 1일 수요일" 형식의 문자열을 파싱
-    pattern = r'(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일'
-    match = re.search(pattern, date_str)
-    if match:
-        year, month, day = match.groups()
-        # 월과 일을 두 자리 숫자로 변환
-        month = month.zfill(2)
-        day = day.zfill(2)
-        return f"{year}-{month}-{day}"
-    return None
 
 # 최대 seqID
 MAX_SEQ_ID = 7000
@@ -126,8 +114,13 @@ try:
             conn.commit()
             continue
 
+        # 먼저 해당 날짜의 기존 데이터 삭제
+        cur.execute('DELETE FROM music_data WHERE broadcast_date = %s', (iso_date,))
+        
         # 곡 리스트 추출
         rows = soup.select("table.list-type tbody tr")
+        inserted_count = 0
+        
         for row in rows:
             cols = row.find_all("td")
             if len(cols) < 3:
@@ -138,27 +131,25 @@ try:
             artist = cols[2].select_one(".singer").get_text(strip=True) if cols[2].select_one(".singer") else ""
             description = cols[3].get_text(strip=True) if len(cols) > 3 else ""
 
-            # 저장 (중복된 데이터는 업데이트)
+            # music_data 테이블에 데이터 삽입
             cur.execute('''
             INSERT INTO music_data (seqID, broadcast_date, number, title, artist, description)
             VALUES (%s, %s, %s, %s, %s, %s)
-            ON CONFLICT (seqID, number) DO UPDATE SET
-                broadcast_date = EXCLUDED.broadcast_date,
-                title = EXCLUDED.title,
-                artist = EXCLUDED.artist,
-                description = EXCLUDED.description
             ''', (seqID, iso_date, number, title, artist, description))
+            inserted_count += 1
 
-        conn.commit()
-        
-        # 성공한 seqID 저장
+        # failed_dates 테이블에서 해당 seqID 삭제
+        cur.execute('DELETE FROM failed_dates WHERE seqID = %s', (seqID,))
+
+        # last_successful_seq 테이블에 seqID 추가
         cur.execute('''
             INSERT INTO last_successful_seq (seqID)
             VALUES (%s)
         ''', (seqID,))
+
         conn.commit()
         
-        print(f"[{seqID}] {iso_date} - {len(rows)}곡 저장 완료")
+        print(f"[{seqID}] {iso_date} - {inserted_count}곡 저장 완료")
         sleep(0.3)  # 서버 과부하 방지
 
 except Exception as e:
@@ -179,34 +170,3 @@ finally:
     
     conn.close()
     print("데이터베이스 연결이 닫혔습니다.")
-
-# 실제 데이터
-real_data = [
-    {
-        "seqID": 1,
-        "broadcast_date": "2024-03-20",
-        "number": 1,
-        "title": "첫 번째 곡",
-        "artist": "첫 번째 아티스트",
-        "description": "첫 번째 곡의 설명"
-    },
-    {
-        "seqID": 1,
-        "broadcast_date": "2024-03-20",
-        "number": 2,
-        "title": "두 번째 곡",
-        "artist": "두 번째 아티스트",
-        "description": "두 번째 곡의 설명"
-    },
-    {
-        "seqID": 1,
-        "broadcast_date": "2024-03-20",
-        "number": 3,
-        "title": "세 번째 곡",
-        "artist": "세 번째 아티스트",
-        "description": "세 번째 곡의 설명"
-    }
-]
-
-if __name__ == "__main__":
-    insert_music_data(real_data)

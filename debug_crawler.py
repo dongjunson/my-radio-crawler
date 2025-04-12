@@ -43,6 +43,12 @@ HTML_TEMPLATE = '''
             <option value="{{ seq }}">{{ seq }}</option>
             {% endfor %}
         </select>
+        
+        <div style="margin-top: 15px;">
+            <h4>특정 SeqID 입력</h4>
+            <input type="number" id="customSeqId" placeholder="SeqID 직접 입력">
+            <button onclick="setCustomSeqId()">설정</button>
+        </div>
     </div>
     
     <div class="step" id="step1">
@@ -80,6 +86,21 @@ HTML_TEMPLATE = '''
 
         function updateSeqId() {
             currentSeqId = document.getElementById('seqSelect').value;
+            resetResults();
+        }
+        
+        function setCustomSeqId() {
+            const customId = document.getElementById('customSeqId').value;
+            if (customId && !isNaN(customId)) {
+                currentSeqId = customId;
+                resetResults();
+                alert(`SeqID가 ${customId}로 설정되었습니다.`);
+            } else {
+                alert('유효한 SeqID를 입력해주세요.');
+            }
+        }
+        
+        function resetResults() {
             // 결과 초기화
             ['urlResult', 'htmlResult', 'dateResult', 'songsResult', 'dbResult'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
@@ -276,6 +297,9 @@ def save_to_db(seq_id):
         if not iso_date:
             raise Exception(f"날짜 형식 변환 실패: {broadcast_date_str}")
 
+        # 먼저 해당 날짜의 기존 데이터 삭제
+        cur.execute('DELETE FROM music_data WHERE broadcast_date = %s', (iso_date,))
+        
         # 곡 목록 추출 및 저장
         rows = soup.select("table.list-type tbody tr")
         inserted_count = 0
@@ -294,11 +318,6 @@ def save_to_db(seq_id):
             cur.execute('''
             INSERT INTO music_data (seqID, broadcast_date, number, title, artist, description)
             VALUES (%s, %s, %s, %s, %s, %s)
-            ON CONFLICT (seqID, number) DO UPDATE SET
-                broadcast_date = EXCLUDED.broadcast_date,
-                title = EXCLUDED.title,
-                artist = EXCLUDED.artist,
-                description = EXCLUDED.description
             ''', (seq_id, iso_date, number, title, artist, description))
             inserted_count += 1
 
@@ -316,6 +335,7 @@ def save_to_db(seq_id):
         return jsonify({
             'success': True,
             'message': f'''처리 완료:
+- 해당 날짜({iso_date})의 기존 데이터 삭제
 - {inserted_count}개의 곡 데이터 저장
 - failed_dates 테이블에서 seqID {seq_id} 삭제
 - last_successful_seq 테이블에 seqID {seq_id} 추가'''
@@ -335,4 +355,4 @@ def save_to_db(seq_id):
             conn.close()
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000) 
+    app.run(debug=True, port=5001) 
