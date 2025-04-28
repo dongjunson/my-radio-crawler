@@ -1,75 +1,108 @@
 # MBC 라디오 음악 크롤러
 
-이 프로젝트는 MBC 라디오 프로그램의 음악 재생 목록을 크롤링하여 PostgreSQL 데이터베이스에 저장하는 애플리케이션입니다.
+MBC 라디오의 음악 방송 데이터를 수집하고 저장하는 크롤러 프로젝트입니다.
 
-## 프로젝트 개요
+## 주요 기능
 
-- MBC 라디오 미니웹의 음악 재생 목록 데이터를 자동으로 수집
-- 날짜, 제목, 아티스트, 설명 등의 정보를 추출하여 구조화된 형태로 저장
-- 진행 상황을 추적하고 실패한 데이터 수집 시도를 기록
+- MBC 라디오 음악 방송 데이터 자동 수집
+- PostgreSQL 데이터베이스에 데이터 저장
+- 실패한 날짜 추적 및 재시도 기능
+- 웹 인터페이스를 통한 데이터 조회
 
-## 기술 스택
+## 프로젝트 구조
 
-- **Python 3.x**
-- **BeautifulSoup4**: HTML 파싱
-- **Requests**: HTTP 요청 처리
-- **Psycopg2**: PostgreSQL 데이터베이스 연결
-- **python-dotenv**: 환경 변수 관리
+```
+.
+├── main.py              # 메인 크롤러 스크립트
+├── web_server.py        # 웹 서버 구현
+├── debug_crawler.py     # 디버깅용 크롤러
+├── retry_failed_dates.py # 실패한 날짜 재시도 스크립트
+├── view_db.py           # 데이터베이스 조회 도구
+├── insert_data.py       # 데이터 삽입 도구
+├── check_page.py        # 페이지 확인 도구
+├── utils.py             # 유틸리티 함수
+├── templates/           # 웹 템플릿 디렉토리
+└── requirements.txt     # 프로젝트 의존성
+```
 
 ## 설치 방법
 
-1. 저장소를 클론합니다:
-```bash
-git clone https://github.com/dongjunson/my-radio-crawler.git
-cd my-radio-crawler
-```
+1. Python 3.8 이상 설치
+2. 가상환경 생성 및 활성화:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # Linux/Mac
+   # 또는
+   .venv\Scripts\activate  # Windows
+   ```
+3. 의존성 설치:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-2. 필요한 패키지를 설치합니다:
-```bash
-pip install -r requirements.txt
-```
+## 환경 설정
 
-3. 환경 설정:
-   - 데이터베이스 연결 정보를 설정하거나 `main.py` 파일 내 설정 정보를 직접 수정합니다.
-   - 필요에 따라 `.env` 파일을 생성하여 환경 변수를 관리할 수 있습니다.
+`.env` 파일을 생성하고 다음 환경 변수를 설정하세요:
+
+```
+DB_PASSWORD=your_password
+DB_HOST=your_host
+DB_PORT=your_port
+DB_NAME=your_database
+DB_USER=your_username
+```
 
 ## 사용 방법
 
-1. 프로그램 실행:
+### 크롤러 실행
 ```bash
 python main.py
 ```
 
-2. 크롤링 과정:
-   - 프로그램은 MBC 라디오 미니웹에서 seqID를 기준으로 순차적으로 데이터를 수집합니다.
-   - 이전에 중단된 지점부터 크롤링을 계속 진행합니다.
-   - 수집한 데이터는 PostgreSQL 데이터베이스에 저장됩니다.
+### 웹 서버 실행
+```bash
+python web_server.py
+```
 
-## 데이터베이스 구조
+### 실패한 날짜 재시도
+```bash
+python retry_failed_dates.py
+```
 
-### 주요 테이블
+## 데이터베이스 스키마
 
-1. **music_data**: 수집된 음악 정보 저장
-   - seqID: 웹페이지 시퀀스 ID
-   - broadcast_date: 방송 날짜
-   - number: 곡 번호
-   - title: 곡 제목
-   - artist: 아티스트
-   - description: 곡 설명
+### music_data 테이블
+- seqID: INTEGER (Primary Key)
+- broadcast_date: DATE
+- number: INTEGER
+- title: TEXT
+- artist: TEXT
+- description: TEXT
 
-2. **last_successful_seq**: 마지막으로 성공적으로 처리된 seqID 기록
-   - seqID: 성공적으로 처리된 웹페이지 시퀀스 ID
-   - updated_at: 업데이트 시간
+### last_successful_seq 테이블
+- id: SERIAL (Primary Key)
+- seqID: INTEGER
+- updated_at: TIMESTAMP
 
-3. **failed_dates**: 처리에 실패한 날짜 정보 기록
-   - seqID: 실패한 웹페이지 시퀀스 ID
-   - original_date: 원본 날짜 텍스트
-   - error_reason: 실패 이유
-   - created_at: 기록 생성 시간
+### failed_dates 테이블
+- seqID: INTEGER (Primary Key)
+- original_date: TEXT
+- error_reason: TEXT
+- created_at: TIMESTAMP
 
-## 주요 기능
+## 의존성
 
-- 한국어 날짜 형식을 ISO 표준 날짜 형식으로 변환
-- 크롤링 진행 상황 추적 및 중단 시 이어서 진행
-- 오류 발생 시 해당 정보를 기록하여 추후 분석 가능
-- 서버 부하 방지를 위한 요청 간 지연 시간 설정 
+- requests==2.31.0
+- beautifulsoup4==4.12.2
+- sqlalchemy==2.0.23
+- pymysql==1.1.0
+- psycopg2-binary==2.9.9
+- python-dotenv==1.0.0
+- fastapi==0.109.2
+- uvicorn==0.27.1
+- jinja2==3.1.3
+- flask==3.0.2
+
+## 라이선스
+
+이 프로젝트는 MIT 라이선스 하에 배포됩니다. 
