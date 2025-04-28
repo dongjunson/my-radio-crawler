@@ -3,6 +3,7 @@ name: Run main.py every day at 10PM
 on:
   schedule:
     - cron: '0 13 * * *'  # UTC 기준 (10PM KST = 1PM UTC)
+  workflow_dispatch: 
 
 jobs:
   run-python-script:
