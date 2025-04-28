@@ -3,15 +3,18 @@ from bs4 import BeautifulSoup
 import psycopg2
 from urllib.parse import quote_plus
 from time import sleep
-import re
+import os
+from dotenv import load_dotenv
 from utils import convert_korean_date_to_iso
 
+load_dotenv()
+
 # Supabase 연결 정보
-password = quote_plus("chyk8125!@#")
-host = "aws-0-ap-northeast-2.pooler.supabase.com"
-port = "5432"
-database = "postgres"
-user = "postgres.wzsgtagctsakerwmrurw"
+password = quote_plus(os.getenv('DB_PASSWORD'))
+host = os.getenv('DB_HOST')
+port = os.getenv('DB_PORT')
+database = os.getenv('DB_NAME')
+user = os.getenv('DB_USER')
 
 conn_string = f"postgresql://{user}:{password}@{host}:{port}/{database}"
 
