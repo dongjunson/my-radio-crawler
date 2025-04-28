@@ -58,8 +58,6 @@ CREATE TABLE IF NOT EXISTS failed_dates (
 ''')
 conn.commit()
 
-# 최대 seqID
-MAX_SEQ_ID = 7000
 BASE_URL = "https://miniweb.imbc.com/Music/View?seqID={}&progCode=RAMFM300"
 
 headers = {
@@ -73,7 +71,7 @@ last_saved_seq_id = last_saved_seq_id[0] if last_saved_seq_id else 0
 print(f"마지막으로 저장된 seqID: {last_saved_seq_id}")
 
 try:
-    for seqID in range(last_saved_seq_id + 1, MAX_SEQ_ID + 1):
+    for seqID in range(last_saved_seq_id - 4, last_saved_seq_id + 4):
         url = BASE_URL.format(seqID)
         response = requests.get(url, headers=headers)
 
