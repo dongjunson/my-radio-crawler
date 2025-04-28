@@ -8,11 +8,11 @@ import json
 load_dotenv()
 
 # Supabase 연결 정보
-password = quote_plus("chyk8125!@#")
-host = "aws-0-ap-northeast-2.pooler.supabase.com"
-port = "5432"
-database = "postgres"
-user = "postgres.wzsgtagctsakerwmrurw"
+password = quote_plus(os.getenv('DB_PASSWORD'))
+host = os.getenv('DB_HOST')
+port = os.getenv('DB_PORT')
+database = os.getenv('DB_NAME')
+user = os.getenv('DB_USER')
 
 conn_string = f"postgresql://{user}:{password}@{host}:{port}/{database}"
 

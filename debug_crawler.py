@@ -5,15 +5,26 @@ import re
 import psycopg2
 from urllib.parse import quote_plus
 from utils import convert_korean_date_to_iso
+import os
+from dotenv import load_dotenv
+
+# 환경 변수 로드
+load_dotenv()
 
 app = Flask(__name__)
 
 # Supabase 연결 정보
-password = quote_plus("chyk8125!@#")
-host = "aws-0-ap-northeast-2.pooler.supabase.com"
-port = "5432"
-database = "postgres"
-user = "postgres.wzsgtagctsakerwmrurw"
+password = quote_plus(os.getenv("DB_PASSWORD"))
+host = os.getenv("DB_HOST")
+port = os.getenv("DB_PORT")
+database = os.getenv("DB_NAME")
+user = os.getenv("DB_USER")
+
+# 환경 변수 검증
+required_env_vars = ["DB_PASSWORD", "DB_HOST", "DB_PORT", "DB_NAME", "DB_USER"]
+missing_vars = [var for var in required_env_vars if not os.getenv(var)]
+if missing_vars:
+    raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
 
 conn_string = f"postgresql://{user}:{password}@{host}:{port}/{database}"
 

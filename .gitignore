@@ -41,6 +41,12 @@ ENV/
 # Environment variables
 .env
 .env.local
+.env.*
+!.env.example
+
+# Supabase
+supabase/
+.supabase/
 
 # OS
 .DS_Store
