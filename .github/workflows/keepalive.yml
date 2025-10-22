@@ -1,0 +1,44 @@
+name: keepalive-commit
+
+on:
+  # 매주 월요일 오전 10시 (KST) = UTC 01시
+  schedule:
+    - cron: "0 1 * * 1"
+  workflow_dispatch:  # 수동 실행 버튼도 추가
+
+permissions:
+  contents: write  # GITHUB_TOKEN으로 push 가능하게 설정
+
+concurrency:
+  group: keepalive-commit
+  cancel-in-progress: false
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Update keepalive file
+        run: |
+          mkdir -p .github/keepalive
+          date -u +"Last keepalive: %Y-%m-%dT%H:%M:%SZ (UTC)" > .github/keepalive/ping.txt
+
+      - name: Commit & push if changed
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+        run: |
+          git add .github/keepalive/ping.txt
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: keepalive [skip ci]"
+          git push origin HEAD:main
