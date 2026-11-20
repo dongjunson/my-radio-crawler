@@ -2,7 +2,10 @@ name: Run main.py every day at 10PM
 
 on:
   schedule:
-    - cron: '0 13 * * *'  # UTC 기준 (10PM KST = 1PM UTC)
+    # UTC 기준 12:43 = KST 21:43.
+    # 정각(:00)은 GitHub 예약 실행이 몰려 몇 시간씩 밀리므로 피하고,
+    # 남는 지연을 감안해 밤 10시보다 조금 앞당겨 둔다.
+    - cron: '43 12 * * *'
   workflow_dispatch: 
 
 jobs:
