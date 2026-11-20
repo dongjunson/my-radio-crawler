@@ -17,12 +17,12 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
-        python-version: '3.8'  # 원하는 파이썬 버전 명시 (예: '3.10')
+        python-version: '3.12'  # 3.8은 ubuntu-latest(26.04)에서 제공되지 않음
 
     - name: Install dependencies
       run: |
